@@ -151,10 +151,10 @@ function impulse_response_RBC(model::RBC_model; impulse_length=30)
     
     # Compute impulse responses for productivity and other variables
     a_impulse_response = impulse_response(a_arma; impulse_length=impulse_length+1)
-    y_impulse_response = psi_ya * a_impulse_response + theta_y
-    n_impulse_response = psi_na * a_impulse_response + theta_n
-    r_impulse_response = rho + sigma * psi_ya * (a_impulse_response[2:J+1] - a_impulse_response[1:J])
-    w_impulse_response = psi_wa * a_impulse_response + theta_w
+    y_impulse_response = psi_ya * a_impulse_response
+    n_impulse_response = psi_na * a_impulse_response
+    r_impulse_response = sigma * psi_ya * (a_impulse_response[2:J+1] - a_impulse_response[1:J])
+    w_impulse_response = psi_wa * a_impulse_response
     a_impulse_response = a_impulse_response[1:J] # needed one additional entry for E_t(a_{t+1})
 
     return a_impulse_response, y_impulse_response, n_impulse_response, r_impulse_response, w_impulse_response
@@ -173,15 +173,18 @@ model = RBC_model(sigma, phi, rho, alpha, a_unc_mean, a_arma)
 colors = ["blue" "orange" "red" "green"]
 labels = ["a_t" "y_t" "n_t" "r_t"]
 layout = (4,1)
+title = "sigma=$sigma, phi=$phi, rho=$rho, alpha=$alpha"
 
 # Simulate and plot paths
 T = 100
 a_sim, y_sim, n_sim, r_sim, w_sim = simulate_RBC(model, ts_length=T)
 p = plot(1:T, [a_sim y_sim n_sim r_sim], color=colors, labels=labels, layout=layout)
-p.subplots[1].attr[:title] = "sigma=$sigma, phi=$phi, rho=$rho, alpha=$alpha"
+p.subplots[1].attr[:title] = title
 plot!()
 
 # Compute and plot impulse response functions
 J = 20
 a_ir, y_ir, n_ir, r_ir, w_ir = impulse_response_RBC(model, impulse_length=J+1)
-plot(0:J, [a_ir, y_ir, n_ir, r_ir], color=colors, labels=labels, layout=layout)
+p = plot(0:J, [a_ir, y_ir, n_ir, r_ir], color=colors, labels=labels, layout=layout)
+p.subplots[1].attr[:title] = title
+plot!()
