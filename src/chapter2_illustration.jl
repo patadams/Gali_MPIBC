@@ -77,7 +77,7 @@ doc"""
 Simulate equilibrium paths for RBC model starting from steady state.
 
 ##### Arguments
-- `model::RBC_model` : Instance of `RBC_model` type.
+- `model::RBC_model` : Instance of `RBC_model` type
 - `;ts_length::Integer(90)` : Length of simulation
 - `;impulse_length::Integer(30)` : Horizon for calculating impulse response
   for MA(\infty) representation of ARMA process for log productivity
@@ -124,6 +124,21 @@ end
 
 
 
+doc"""
+Compute impulse responses of real variables to a unit shock to log productivity
+within an RBC model, in terms of deviations from steady state.
+
+##### Arguments
+- `model::RBC_model` : Instance of `RBC_model` type
+- `impulse_length::Integer(30)` : Length of horizon for calculating impulse
+
+##### Returns
+- `a_impulse_response::Array{Float64,1}` : Impulse response for productivity
+- `y_impulse_response::Array{Float64,1}` : Impulse response for real output
+- `n_impulse_response::Array{Float64,1}` : Impulse response for employment
+- `r_impulse_response::Array{Float64,1}` : Impulse response for real interest rate
+- `w_impulse_response::Array{Float64,1}` : Impulse response for real wage
+"""
 function impulse_response_RBC(model::RBC_model; impulse_length=30)
     J = impulse_length
 
