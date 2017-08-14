@@ -124,7 +124,28 @@ end
 
 
 
-### Example: simulate equilibrium paths and create plots
+function impulse_response_RBC(model::RBC_model; impulse_length=30)
+    J = impulse_length
+
+    # Unpack model parameters and stochastic process for a_t.
+    sigma, phi, rho, alpha = model.sigma, model.phi, model.rho, model.alpha
+    a_unc_mean, a_arma = model.a_unc_mean, model.a_arma
+
+    # Compute reduced form parameters.
+    psi_ya, theta_y, psi_na, theta_n, psi_wa, theta_w = compute_RBC_reduced_form(model)    
+    
+    # Compute impulse responses for productivity and other variables
+    a_impulse_response = impulse_response(a_arma; impulse_length=impulse_length+1)
+    y_impulse_response = psi_ya * a_impulse_response + theta_y
+    n_impulse_response = psi_na * a_impulse_response + theta_n
+    r_impulse_response = rho + sigma * psi_ya * (a_impulse_response[2:J+1] - a_impulse_response[1:J])
+    w_impulse_response = psi_wa * a_impulse_response + theta_w
+    a_impulse_response = a_impulse_response[1:J] # needed one additional entry for E_t(a_{t+1})
+
+    return a_impulse_response, y_impulse_response, n_impulse_response, r_impulse_response, w_impulse_response
+end
+
+### Example: simulate equilibrium paths, plot paths and impulse response functions
 sigma = 2
 phi = 0
 rho = 0.05
@@ -133,8 +154,19 @@ a_unc_mean = 0
 a_arma = ARMA([0.75]) # persistent AR(1) process for log productivity
 model = RBC_model(sigma, phi, rho, alpha, a_unc_mean, a_arma)
 
+# Plot settings
+colors = ["blue" "orange" "red" "green"]
+labels = ["a_t" "y_t" "n_t" "r_t"]
+layout = (4,1)
+
+# Simulate and plot paths
 T = 100
 a_sim, y_sim, n_sim, r_sim, w_sim = simulate_RBC(model, ts_length=T)
-p = plot(1:T, [a_sim y_sim n_sim r_sim], color=["blue" "orange" "red" "green"], labels=["a_t" "y_t" "n_t" "r_t"], layout=(4,1))
+p = plot(1:T, [a_sim y_sim n_sim r_sim], color=colors, labels=labels, layout=layout)
 p.subplots[1].attr[:title] = "sigma=$sigma, phi=$phi, rho=$rho, alpha=$alpha"
 plot!()
+
+# Compute and plot impulse response functions
+J = 20
+a_ir, y_ir, n_ir, r_ir, w_ir = impulse_response_RBC(model, impulse_length=J+1)
+plot(0:J, [a_ir, y_ir, n_ir, r_ir], color=colors, labels=labels, layout=layout)
